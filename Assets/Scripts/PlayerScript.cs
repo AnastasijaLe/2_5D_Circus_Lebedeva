@@ -23,11 +23,12 @@ public class PlayerScript : MonoBehaviour
         string[] nameArray = ReadLineFromFile(txtFileName);
 
         for(int i = 0; i < otherPlayers.Length-1; i++) {
-            spawnPoint.transform.position += new Vector3(0.8f, 0, 0.2f);
+            spawnPoint.transform.position += new Vector3(0.49f, 0, 0.4f);
             index = Random.Range(0, playerPrefabs.Length);
             GameObject character = 
                Instantiate(playerPrefabs[index], spawnPoint.transform.position, Quaternion.identity);
             character.GetComponent<NameScript>().SetPlayerName(nameArray[Random.Range(0, nameArray.Length)]);
+
         }
     }
 

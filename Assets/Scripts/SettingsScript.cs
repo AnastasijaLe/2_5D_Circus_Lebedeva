@@ -16,10 +16,15 @@ public class SettingsScript : MonoBehaviour
 
     private List<Resolution> validResolutions = new List<Resolution>();
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+
+        Load();
+    }
+
     private void Start()
     {
-       Load();
-
         // Gather all system resolutions
         Resolution[] allResolutions = Screen.resolutions;
 
