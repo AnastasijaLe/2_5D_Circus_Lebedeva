@@ -11,28 +11,46 @@ public class DiceRollScript : MonoBehaviour
     public string diceFaceNum;
     public bool isLanded = false;
     public bool firstThrow = false;
+    private AudioSource audioSource;
 
 
     void Awake()
     {
         Initialize(0);
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
     void Update()
     {
         if(rBody != null)
-            if(Input.GetMouseButton(0) && isLanded || Input.GetMouseButton(0) && !firstThrow) {
+        {
+            if(Input.GetMouseButton(0) && isLanded || Input.GetMouseButton(0) && !firstThrow) 
+            {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
                 if(Physics.Raycast(ray, out hit) ) 
-                    if(hit.collider != null && hit.collider.gameObject == this.gameObject) {
+                {
+                    if(hit.collider != null && hit.collider.gameObject == this.gameObject) 
+                    {
                         if(!firstThrow) 
                             firstThrow = true;
 
                         RollDice();
                     }
+                }
             }
+
+            if (firstThrow && !isLanded &&
+                rBody.velocity.magnitude < 0.05f &&
+                rBody.angularVelocity.magnitude < 0.05f)
+            {
+                isLanded = true;
+
+                if (audioSource != null && audioSource.isPlaying)
+                    audioSource.Stop();
+            }
+        }    
     }
 
     public void Initialize(int node) {
@@ -51,10 +69,25 @@ public class DiceRollScript : MonoBehaviour
 
     private void RollDice() {
         rBody.isKinematic = false;
+
+         if (audioSource != null && !audioSource.isPlaying)
+            audioSource.Play();
+        
+
         forceX = Random.Range(0, maxRadForceVal);
         forceY = Random.Range(0, maxRadForceVal);
         forceZ = Random.Range(0, maxRadForceVal);
         rBody.AddForce(Vector3.up*Random.Range(800, startRollingForce));
         rBody.AddTorque(forceX, forceY, forceZ);  
+    }
+
+      private IEnumerator StopSoundAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (audioSource != null && audioSource.isPlaying){
+            Debug.Log("STOP!");
+            audioSource.Stop();
+        }
+            
     }
 }

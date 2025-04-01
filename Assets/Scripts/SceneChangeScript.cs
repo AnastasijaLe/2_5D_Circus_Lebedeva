@@ -17,11 +17,11 @@ public class SceneChangeScript : MonoBehaviour
             yield return fadeScript.FadeOut(0.1f);
             PlayerPrefs.DeleteAll();
 
-           if(UnityEditor.EditorApplication.isPlaying)
-                UnityEditor.EditorApplication.isPlaying = false;
-
-            else
-                Application.Quit();
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
 
         } else if (string.Equals(command, "play", System.StringComparison.OrdinalIgnoreCase)) {
             yield return fadeScript.FadeOut(0.1f);

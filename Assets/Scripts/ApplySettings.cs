@@ -18,15 +18,12 @@ public class ApplySettings : MonoBehaviour
         {
             float brightness = PlayerPrefs.GetFloat("brightness");
             GameObject overlay = GameObject.Find("Overlay");
-            if (overlay != null)
+            if (overlay != null && overlay.TryGetComponent(out UnityEngine.UI.Image img))
             {
-                var img = overlay.GetComponent<UnityEngine.UI.Image>();
-                if (img != null)
-                {
                     Color tempColor = img.color;
                     tempColor.a = Mathf.Lerp(0.9f, 0f, brightness);
                     img.color = tempColor;
-                }
+                
             } 
         }
 
@@ -38,10 +35,22 @@ public class ApplySettings : MonoBehaviour
         if (PlayerPrefs.HasKey("resolutionIndex"))
         {
             Resolution[] allResolutions = Screen.resolutions;
-            int savedIndex = PlayerPrefs.GetInt("resolutionIndex");
-            if (savedIndex >= 0 && savedIndex < allResolutions.Length)
+            List<Resolution> uniqueResolutions = new List<Resolution>();
+            HashSet<string> labels = new HashSet<string>();
+            foreach (var res in allResolutions)
             {
-                Resolution res = allResolutions[savedIndex];
+                string label = $"{res.width}x{res.height}";
+                if (!labels.Contains(label))
+                {
+                    uniqueResolutions.Add(res);
+                    labels.Add(label);
+                }
+            }
+
+            int savedIndex = PlayerPrefs.GetInt("resolutionIndex");
+            if (savedIndex >= 0 && savedIndex < uniqueResolutions.Count)
+            {
+                Resolution res = uniqueResolutions[savedIndex];
                 Screen.SetResolution(res.width, res.height, Screen.fullScreen);
             }
         } 

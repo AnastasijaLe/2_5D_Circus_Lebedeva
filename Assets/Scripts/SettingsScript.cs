@@ -18,6 +18,14 @@ public class SettingsScript : MonoBehaviour
 
     private void Start()
     {
+
+       if (!PlayerPrefs.HasKey("defaultResolutionWidth") || !PlayerPrefs.HasKey("defaultResolutionHeight"))
+        {
+            PlayerPrefs.SetInt("defaultResolutionWidth", Screen.currentResolution.width);
+            PlayerPrefs.SetInt("defaultResolutionHeight", Screen.currentResolution.height);
+            PlayerPrefs.Save();
+        }
+
        Load();
 
         // Gather all system resolutions
@@ -41,7 +49,7 @@ public class SettingsScript : MonoBehaviour
         resolutionDropdown.ClearOptions();
         resolutionDropdown.AddOptions(resolutionLabels);
 
-         int savedResolutionIndex = PlayerPrefs.GetInt("resolutionIndex", -1);
+        int savedResolutionIndex = PlayerPrefs.GetInt("resolutionIndex", -1);
         if (savedResolutionIndex >= 0 && savedResolutionIndex < validResolutions.Count)
         {
             resolutionDropdown.value = savedResolutionIndex;
@@ -139,6 +147,19 @@ public class SettingsScript : MonoBehaviour
             Screen.fullScreen = isFullscreen;
             fullscreenToggle.isOn = isFullscreen;
         }
+
+        if (!PlayerPrefs.HasKey("resolutionIndex"))
+        {
+            int savedIndex = PlayerPrefs.GetInt("resolutionIndex");
+
+            if (savedIndex >= 0 && savedIndex < validResolutions.Count)
+            {
+                resolutionDropdown.value = savedIndex;
+                resolutionDropdown.RefreshShownValue();
+                OnResolutionChanged(savedIndex);
+            }
+        }
+
     }
 
    
@@ -149,19 +170,21 @@ public class SettingsScript : MonoBehaviour
         brightnessSlider.value = 1f;
         changeVolume();
         ChangeBrightness();
-        fullscreenToggle.isOn = false; // force a refresh
         fullscreenToggle.isOn = true;
         ToggleFullscreen(true);
 
-        // Reset resolution to current screen resolution
+       int defWidth = PlayerPrefs.GetInt("defaultResolutionWidth", Screen.currentResolution.width);
+        int defHeight = PlayerPrefs.GetInt("defaultResolutionHeight", Screen.currentResolution.height);
+
         for (int i = 0; i < validResolutions.Count; i++)
         {
-            if (validResolutions[i].width == Screen.currentResolution.width &&
-                validResolutions[i].height == Screen.currentResolution.height)
+            if (validResolutions[i].width == defWidth &&
+                validResolutions[i].height == defHeight)
             {
                 resolutionDropdown.value = i;
                 resolutionDropdown.RefreshShownValue();
                 OnResolutionChanged(i);
+                PlayerPrefs.SetInt("resolutionIndex", i);
                 break;
             }
         }
