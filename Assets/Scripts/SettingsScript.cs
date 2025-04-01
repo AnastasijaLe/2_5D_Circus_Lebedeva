@@ -16,15 +16,10 @@ public class SettingsScript : MonoBehaviour
 
     private List<Resolution> validResolutions = new List<Resolution>();
 
-    private void Awake()
-    {
-        DontDestroyOnLoad(gameObject);
-
-        Load();
-    }
-
     private void Start()
     {
+       Load();
+
         // Gather all system resolutions
         Resolution[] allResolutions = Screen.resolutions;
 
@@ -79,7 +74,22 @@ public class SettingsScript : MonoBehaviour
             bool isFullscreen = fullscreenToggle.isOn;
             Screen.SetResolution(chosen.width, chosen.height, isFullscreen);
             PlayerPrefs.SetInt("resolutionIndex", index); // Save resolution
-            Debug.Log($"Changed resolution to: {chosen.width} x {chosen.height}");
+            Debug.Log($" Trying to set resolution: {chosen.width} x {chosen.height}");
+            StartCoroutine(VerifyResolution(chosen.width, chosen.height));
+        }
+    }
+
+    private IEnumerator VerifyResolution(int expectedWidth, int expectedHeight)
+    {
+        yield return new WaitForEndOfFrame();
+
+        if (Screen.width == expectedWidth && Screen.height == expectedHeight)
+        {
+            Debug.Log($" Resolution successfully applied: {Screen.width} x {Screen.height}");
+        }
+        else
+        {
+            Debug.LogWarning($" Resolution mismatch! Current: {Screen.width} x {Screen.height}, Expected: {expectedWidth} x {expectedHeight}");
         }
     }
 

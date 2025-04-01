@@ -7445,6 +7445,7 @@ GameObject:
   - component: {fileID: 1570516157}
   - component: {fileID: 1570516158}
   - component: {fileID: 1570516159}
+  - component: {fileID: 1570516160}
   m_Layer: 0
   m_Name: ScriptHolder
   m_TagString: Untagged
@@ -7555,6 +7556,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saveFileName: saveFile.json
+--- !u!114 &1570516160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1570516153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f3217b660b9f9b44829c2bf3373c61d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1650661936
 GameObject:
   m_ObjectHideFlags: 0
