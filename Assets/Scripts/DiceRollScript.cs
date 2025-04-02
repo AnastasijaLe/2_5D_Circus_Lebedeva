@@ -11,6 +11,9 @@ public class DiceRollScript : MonoBehaviour
     public string diceFaceNum;
     public bool isLanded = false;
     public bool firstThrow = false;
+     public bool rollCompleted = false;
+    public bool rollConsumed = false;
+    public bool inputEnabled = true;
     private AudioSource audioSource;
 
 
@@ -23,6 +26,9 @@ public class DiceRollScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!inputEnabled)
+        return;
+
         if(rBody != null)
         {
             if(Input.GetMouseButton(0) && isLanded || Input.GetMouseButton(0) && !firstThrow) 
@@ -32,10 +38,11 @@ public class DiceRollScript : MonoBehaviour
                 if(Physics.Raycast(ray, out hit) ) 
                 {
                     if(hit.collider != null && hit.collider.gameObject == this.gameObject) 
-                    {
-                        if(!firstThrow) 
-                            firstThrow = true;
-
+                    { 
+                        firstThrow = true;
+                        rollCompleted = false;
+                        rollConsumed = false;
+                        diceFaceNum = "";
                         RollDice();
                     }
                 }
@@ -46,7 +53,7 @@ public class DiceRollScript : MonoBehaviour
                 rBody.angularVelocity.magnitude < 0.05f)
             {
                 isLanded = true;
-
+                rollCompleted = true;
                 if (audioSource != null && audioSource.isPlaying)
                     audioSource.Stop();
             }
@@ -61,8 +68,12 @@ public class DiceRollScript : MonoBehaviour
         } else if(node == 1)
             transform.position = position;
 
+        inputEnabled = true;
         firstThrow = false;
         isLanded = false;
+        rollCompleted = false;
+        rollConsumed = false;
+        diceFaceNum = "";
         rBody.isKinematic = true;
         transform.rotation = new Quaternion(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360), 0);
     }
@@ -89,5 +100,15 @@ public class DiceRollScript : MonoBehaviour
             audioSource.Stop();
         }
             
+    }
+
+      public void ResetRollState()
+    {
+        firstThrow = false;
+        isLanded = false;
+        rollCompleted = false;
+        rollConsumed = false;
+        diceFaceNum = "";
+        inputEnabled = true;
     }
 }

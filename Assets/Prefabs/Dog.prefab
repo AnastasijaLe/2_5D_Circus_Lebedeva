@@ -185,6 +185,7 @@ GameObject:
   - component: {fileID: 8163608089573611542}
   - component: {fileID: 8527191922793498258}
   - component: {fileID: 6301000351711567487}
+  - component: {fileID: 3982473834564262008}
   m_Layer: 0
   m_Name: Dog
   m_TagString: Untagged
@@ -293,3 +294,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3982473834564262008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6076087931203901800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aca896b11183b7f4ebb3dc9d4aec290f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 1
+  boardManager: {fileID: 0}
+  animator: {fileID: 6301000351711567487}
+  nameField: {fileID: 1956273940019110709}

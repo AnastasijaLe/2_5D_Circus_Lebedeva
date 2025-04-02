@@ -14,10 +14,20 @@ public class PlayerScript : MonoBehaviour
 
     void Start()
     {
+        if (TurnManager.Instance != null)
+            TurnManager.Instance.players.Clear();
+
         characterIndex = PlayerPrefs.GetInt("SelectedCharacter", 0);
         GameObject mainCharacter = Instantiate(playerPrefabs[characterIndex], 
             spawnPoint.transform.position, Quaternion.identity);
         mainCharacter.GetComponent<NameScript>().SetPlayerName(PlayerPrefs.GetString("PlayerName"));
+
+        if (TurnManager.Instance != null)
+        {
+            PlayerMover mover = mainCharacter.GetComponent<PlayerMover>();
+            if(mover != null)
+                TurnManager.Instance.players.Add(mover);
+        }
 
         otherPlayers = new int[PlayerPrefs.GetInt("PlayerCount")];
         string[] nameArray = ReadLineFromFile(txtFileName);
@@ -29,6 +39,14 @@ public class PlayerScript : MonoBehaviour
                Instantiate(playerPrefabs[index], spawnPoint.transform.position, Quaternion.identity);
             character.GetComponent<NameScript>().SetPlayerName(nameArray[Random.Range(0, nameArray.Length)]);
 
+             if (TurnManager.Instance != null)
+            {
+                PlayerMover mover = character.GetComponent<PlayerMover>();
+                if(mover != null){
+                    mover.offset = new Vector3(-i * 0.3f, 0, i * 0.2f);
+                    TurnManager.Instance.players.Add(mover);
+                }
+            }
         }
     }
 
