@@ -5,6 +5,14 @@ using UnityEngine;
 public class BoardManager : MonoBehaviour
 {
    public List<Transform> boardTiles = new List<Transform>();
+    public Dictionary<int, int> bridging = new Dictionary<int, int>()
+    {
+        {5, 9},
+        {13, 19},
+        {23, 25},
+        {29, 33},
+        {36, 42}
+    };
 
     void Awake()
     {

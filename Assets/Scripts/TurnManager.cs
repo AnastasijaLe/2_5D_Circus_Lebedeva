@@ -26,7 +26,20 @@ public class TurnManager : MonoBehaviour
 
     public void NextTurn()
     {
-        currentTurnIndex = (currentTurnIndex + 1) % players.Count;
+        if (players.Count == 0) return;
+
+        int startingIndex = currentTurnIndex;
+        do
+        {
+            currentTurnIndex = (currentTurnIndex + 1) % players.Count;
+            // If we've found a player who hasn't finished, break.
+            if (!players[currentTurnIndex].isFinished)
+                return;
+        }
+        // If we looped back to the start, all players are finished.
+        while (currentTurnIndex != startingIndex);
+        
+        // Optionally, you could signal that the game is over here.
     }
 
 }

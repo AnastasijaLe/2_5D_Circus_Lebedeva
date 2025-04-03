@@ -68,17 +68,13 @@ public class DiceRollScript : MonoBehaviour
         } else if(node == 1)
             transform.position = position;
 
-        inputEnabled = true;
-        firstThrow = false;
-        isLanded = false;
-        rollCompleted = false;
-        rollConsumed = false;
-        diceFaceNum = "";
+        ResetRollState();
         rBody.isKinematic = true;
         transform.rotation = new Quaternion(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360), 0);
     }
 
-    private void RollDice() {
+    public void RollDice() {
+
         rBody.isKinematic = false;
 
          if (audioSource != null && !audioSource.isPlaying)
