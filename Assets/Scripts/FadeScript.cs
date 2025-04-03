@@ -30,7 +30,7 @@ public class FadeScript : MonoBehaviour
             : 0f;
 
         tempColor = img.color;
-        tempColor.a = 1f; // Полная чёрнота в начале
+        tempColor.a = 1f;
         img.color = tempColor;
 
         for (float a = 1f; a >= endAlpha; a -= 0.05f)

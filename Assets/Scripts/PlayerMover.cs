@@ -80,7 +80,7 @@ public class PlayerMover : MonoBehaviour
             // Move toward the next tile.
             while (Vector3.Distance(transform.position, nextPos) > 0.01f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, nextPos, moveSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, nextPos, moveSpeed*Time.deltaTime);
                 yield return null;
             }
             currentTileIndex++;
@@ -260,4 +260,10 @@ IEnumerator HandleHurtTile()
     {
         return isMoving;
     }
+
+        public int GetCurrentTileIndex()
+    {
+        return currentTileIndex;
+    }
+
 }

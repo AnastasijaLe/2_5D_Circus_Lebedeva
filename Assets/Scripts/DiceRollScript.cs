@@ -31,7 +31,7 @@ public class DiceRollScript : MonoBehaviour
 
         if(rBody != null)
         {
-            if(Input.GetMouseButton(0) && isLanded || Input.GetMouseButton(0) && !firstThrow) 
+            if(Input.GetMouseButtonDown(0) && isLanded || Input.GetMouseButton(0) && !firstThrow) 
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -80,7 +80,6 @@ public class DiceRollScript : MonoBehaviour
          if (audioSource != null && !audioSource.isPlaying)
             audioSource.Play();
         
-
         forceX = Random.Range(0, maxRadForceVal);
         forceY = Random.Range(0, maxRadForceVal);
         forceZ = Random.Range(0, maxRadForceVal);
@@ -92,7 +91,6 @@ public class DiceRollScript : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         if (audioSource != null && audioSource.isPlaying){
-            Debug.Log("STOP!");
             audioSource.Stop();
         }
             
