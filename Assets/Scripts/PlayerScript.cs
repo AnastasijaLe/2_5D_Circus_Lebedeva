@@ -43,7 +43,7 @@ public class PlayerScript : MonoBehaviour
             {
                 PlayerMover mover = character.GetComponent<PlayerMover>();
                 if(mover != null){
-                    mover.offset = new Vector3(-i * 0.3f, 0, i * 0.2f);
+                    mover.offset = new Vector3(-i * 0.3f, 0, i * 0.3f);
                     TurnManager.Instance.players.Add(mover);
                 }
             }

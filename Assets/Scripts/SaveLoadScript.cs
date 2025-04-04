@@ -14,12 +14,13 @@ public class SaveLoadScript : MonoBehaviour
     public class GameData {
         public int character;
         public string characterName;
-        //.....
+        public List<PlayerResult> rankingList = new List<PlayerResult>();
     }
 
     private GameData gameData = new GameData();
 
     public void SaveGame(int character, string name) {
+        LoadGame();
         gameData.character = character;
         gameData.characterName = name;
 
@@ -40,4 +41,24 @@ public class SaveLoadScript : MonoBehaviour
         } else
             Debug.LogWarning("Save file not foaund: "+filePath);   
     }
+
+        // Add a player result to the ranking list and save
+    public void AddPlayerResult(PlayerResult result) {
+        LoadGame(); // Load current data
+        gameData.rankingList.Add(result);
+        SaveData();
+    }
+
+    // Return all stored player results
+    public List<PlayerResult> GetRankingList() {
+        LoadGame();
+        return gameData.rankingList;
+    }
+
+    // Save current gameData to file
+    private void SaveData() {
+        string json = JsonUtility.ToJson(gameData);
+        File.WriteAllText(Application.persistentDataPath + "/" + saveFileName, json);
+    }
+
 }

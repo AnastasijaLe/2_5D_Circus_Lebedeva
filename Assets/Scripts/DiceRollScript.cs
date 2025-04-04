@@ -12,7 +12,6 @@ public class DiceRollScript : MonoBehaviour
     public bool isLanded = false;
     public bool firstThrow = false;
      public bool rollCompleted = false;
-    public bool rollConsumed = false;
     public bool inputEnabled = true;
     private AudioSource audioSource;
 
@@ -41,7 +40,6 @@ public class DiceRollScript : MonoBehaviour
                     { 
                         firstThrow = true;
                         rollCompleted = false;
-                        rollConsumed = false;
                         diceFaceNum = "";
                         RollDice();
                     }
@@ -76,6 +74,7 @@ public class DiceRollScript : MonoBehaviour
     public void RollDice() {
 
         rBody.isKinematic = false;
+        inputEnabled = false;
 
          if (audioSource != null && !audioSource.isPlaying)
             audioSource.Play();
@@ -101,7 +100,6 @@ public class DiceRollScript : MonoBehaviour
         firstThrow = false;
         isLanded = false;
         rollCompleted = false;
-        rollConsumed = false;
         diceFaceNum = "";
         inputEnabled = true;
     }

@@ -13,15 +13,36 @@ public class PlayerMover : MonoBehaviour
     [SerializeField] private Transform nameField;
     public bool isFinished = false;
     private const int rowLength = 8;
-    private HashSet<int> hurtTiles = new HashSet<int>() { 2, 7, 11, 17, 21, 28, 39, 44, 46 };
+    private HashSet<int> hurtTiles = new HashSet<int>() { 2, 7, 11, 17, 21, 28, 39, 46 };
     public Vector3 offset;
     private int safeTileIndex;
+    public int diceSum = 0;
+    public int diceRollCount = 0;
+    public int hurtCount = 0;
+    public int chestCount = 0;
+    public string finishTime = "";
+    public bool isRecorded = false;
+    public void AddDiceRoll() { diceRollCount++; }
+    public void AddDiceValue(int val) { diceSum += val; }
+    public void AddHurt() { hurtCount++; }
+    public void AddChest() { chestCount++; }
+    public void SetFinishTime(string time) { finishTime = time; }
+    public enum TileType { Normal, Chest, Hurt }
+    public TileType lastTileType = TileType.Normal;
 
 
     public void MoveSteps(int steps, System.Action onComplete = null)
     {
+        Debug.Log($"[{gameObject.name}] MoveSteps called. currentTileIndex = {currentTileIndex}, steps = {steps}");
         int finalTileIndex = tiles.Count - 1;  // Final tile index
         safeTileIndex = currentTileIndex;
+
+         if (tiles[currentTileIndex].CompareTag("Chest"))
+            lastTileType = TileType.Chest;
+        else if (tiles[currentTileIndex].CompareTag("Hurt"))
+            lastTileType = TileType.Hurt;
+        else
+            lastTileType = TileType.Normal;
 
         if (!isMoving)
         {
@@ -65,7 +86,6 @@ public class PlayerMover : MonoBehaviour
     }
 
     // Moves one tile at a time until the target tile index is reached.
-    // Note: We do NOT check for bridging after every tile, but only once after reaching the final tile.
     IEnumerator MoveToTile(int targetIndex, System.Action onComplete)
     {
         if (animator != null)
@@ -75,12 +95,12 @@ public class PlayerMover : MonoBehaviour
         while (currentTileIndex < targetIndex)
         {
             int nextTile = currentTileIndex + 1;
-            Vector3 nextPos = tiles[nextTile].position + new Vector3(0, 0.8f, -0.7f) + offset;
+            Vector3 nextPos = tiles[nextTile].position + new Vector3(0, 0.8f, -0.7f)  + offset  ;
 
             // Move toward the next tile.
             while (Vector3.Distance(transform.position, nextPos) > 0.01f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, nextPos, moveSpeed*Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, nextPos, moveSpeed * Time.deltaTime);
                 yield return null;
             }
             currentTileIndex++;
@@ -111,7 +131,7 @@ public class PlayerMover : MonoBehaviour
             // Animate the bridging move.
             while (Vector3.Distance(transform.position, bridgeDestPos) > 0.01f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, bridgeDestPos, moveSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, bridgeDestPos, moveSpeed* Time.deltaTime);
                 yield return null;
             }
             currentTileIndex = destination;
@@ -192,13 +212,16 @@ public class PlayerMover : MonoBehaviour
         ApplyFlipLogic(currentTileIndex);
 
         // Slide a little to the left to indicate finishing.
-        Vector3 finishPos = transform.position + new Vector3(-1f, 0, 0);
+        Vector3 finishPos = transform.position + new Vector3(-1.5f, 0, 0);
         while (Vector3.Distance(transform.position, finishPos) > 0.01f)
         {
             transform.position = Vector3.MoveTowards(transform.position, finishPos, moveSpeed * Time.deltaTime);
             yield return null;
         }
         isFinished = true;
+        var timeScript = FindObjectOfType<TimeScript>();
+        if (timeScript != null)
+            SetFinishTime(timeScript.TIMEtxt.text);
         if (animator != null)
             animator.SetBool("isWalking", false);
         isMoving = false;
@@ -217,6 +240,7 @@ public class PlayerMover : MonoBehaviour
 
 IEnumerator HandleHurtTile()
 {
+    AddHurt();
     // Play hurt animation.
     if (animator != null)
     {

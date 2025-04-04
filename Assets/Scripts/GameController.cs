@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -8,36 +9,25 @@ public class GameController : MonoBehaviour
 {
     [SerializeField] private DiceRollScript diceScript;
     [SerializeField] private BoardManager boardManager;
-    [SerializeField] private Image resetDiceImage;
     [SerializeField] private FadeScript fadeScript;
+    [SerializeField] private Image resetDiceImage;
     [SerializeField] private GameObject endGameObject; // End–game UI object
 
     private bool moveStarted = false;
     private bool extraRollUsed = false;
-    // Chest tiles (0-based indices): levels 4,16,28,46 → indices 3,15,27,45.
-    private HashSet<int> chestTiles = new HashSet<int> { 3, 15, 27 }; // (adjust as needed)
-
-    // Flag to indicate that the game has ended.
+    private HashSet<int> chestTiles = new HashSet<int> { 3, 15, 27 }; 
     private bool gameEnded = false;
 
     void Start()
     {
+        diceScript.ResetRollState();
+        resetDiceImage.raycastTarget = true;
         if (TurnManager.Instance != null)
         {
             foreach (PlayerMover mover in TurnManager.Instance.players)
             {
                 mover.InitializeBoard(boardManager);
             }
-        }
-        if (TurnManager.Instance.currentTurnIndex == 0)
-        {
-            diceScript.inputEnabled = true;
-            resetDiceImage.raycastTarget = true;
-        }
-        else
-        {
-            diceScript.inputEnabled = false;
-            resetDiceImage.raycastTarget = false;
         }
         endGameObject.SetActive(false);
     }
@@ -48,19 +38,9 @@ public class GameController : MonoBehaviour
         if (gameEnded)
             return;
 
-        if (TurnManager.Instance.currentTurnIndex == 0)
-        {
-            diceScript.inputEnabled = true;
-            resetDiceImage.raycastTarget = true;
-        }
-        else
-        {
-            diceScript.inputEnabled = false;
-            resetDiceImage.raycastTarget = false;
-        }
-
         // Get the current player.
         PlayerMover currentPlayer = TurnManager.Instance.GetCurrentPlayer();
+        resetDiceImage.raycastTarget = !moveStarted && !diceScript.firstThrow;
 
         // If the current player is finished, force a turn advance.
         if (currentPlayer != null && currentPlayer.isFinished)
@@ -70,80 +50,38 @@ public class GameController : MonoBehaviour
             return;
         }
 
-        // If it's a bot turn (assume non-zero currentTurnIndex means bot), auto-roll.
-        if (TurnManager.Instance.currentTurnIndex != 0)
-        {
-            if (!diceScript.firstThrow)
-            {
-                StartCoroutine(BotDiceRoll());
-            }
-        }
-
         // When the dice has been thrown, landed, and not yet processed, trigger movement.
-        if (diceScript.firstThrow && diceScript.rollCompleted && !diceScript.rollConsumed && !moveStarted)
+        if (diceScript.firstThrow && diceScript.rollCompleted && !moveStarted)
         {
+            resetDiceImage.raycastTarget = false;
             diceScript.inputEnabled = false;
-            diceScript.rollConsumed = true;
             moveStarted = true;
             StartCoroutine(MoveAfterLanding());
         }
     }
 
-    IEnumerator BotDiceRoll()
-    {
-        yield return new WaitForSeconds(1f);
-        if (!diceScript.firstThrow)
-        {
-            diceScript.firstThrow = true;
-            diceScript.rollCompleted = false;
-            diceScript.rollConsumed = false;
-            diceScript.diceFaceNum = "";
-        
-            Rigidbody rb = diceScript.GetComponent<Rigidbody>();
-            rb.velocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            diceScript.transform.rotation = Quaternion.Euler(
-                Random.Range(0f, 360f),
-                Random.Range(0f, 360f),
-                Random.Range(0f, 360f)
-            );
-            diceScript.RollDice();
-        }
-    }
 
     IEnumerator MoveAfterLanding()
-    {
-        float timeout = 10f;
-        float timer = 0f;
-        while ((string.IsNullOrEmpty(diceScript.diceFaceNum) ||
-               !int.TryParse(diceScript.diceFaceNum, out _)) && timer < timeout)
-        {
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        if (timer >= timeout && TurnManager.Instance.currentTurnIndex != 0)
-        {
-            Debug.Log("Bot roll timeout reached. Reinitializing dice.");
-            diceScript.Initialize(1);
-            moveStarted = false;
-            yield break;
-        }
+    {    
         if (int.TryParse(diceScript.diceFaceNum, out int number))
         {
             PlayerMover currentPlayer = TurnManager.Instance.GetCurrentPlayer();
             if (currentPlayer != null)
             {
+                currentPlayer.AddDiceRoll();
+                currentPlayer.AddDiceValue(number);
+                if (chestTiles.Contains(currentPlayer.GetCurrentTileIndex()))
+                    currentPlayer.AddChest();
                 currentPlayer.MoveSteps(number, () =>
                 {
                     Debug.Log($"[GameController] Moved player {number} steps.");
-                    // Use GetCurrentTileIndex() to check for chest tile.
-                    if (chestTiles.Contains(currentPlayer.GetCurrentTileIndex()) && !extraRollUsed)
+                    if (chestTiles.Contains(currentPlayer.GetCurrentTileIndex())  &&
+                        currentPlayer.lastTileType != PlayerMover.TileType.Hurt && !extraRollUsed)
                     {
                         Debug.Log("[GameController] Chest tile! Granting an extra roll.");
                         extraRollUsed = true;
                         diceScript.ResetRollState();
                         moveStarted = false;
-                        resetDiceImage.raycastTarget = (TurnManager.Instance.currentTurnIndex == 0);
                     }
                     else
                     {
@@ -151,7 +89,6 @@ public class GameController : MonoBehaviour
                         diceScript.ResetRollState();
                         moveStarted = false;
                         extraRollUsed = false;
-                        resetDiceImage.raycastTarget = (TurnManager.Instance.currentTurnIndex == 0);
                         CheckForGameEnd();
                     }
                 });
@@ -159,17 +96,12 @@ public class GameController : MonoBehaviour
             else
             {
                 Debug.LogWarning("No current player found in TurnManager.");
-                diceScript.ResetRollState();
                 moveStarted = false;
-                resetDiceImage.raycastTarget = (TurnManager.Instance.currentTurnIndex == 0);
             }
         }
         else
         {
-            Debug.LogWarning("[GameController] Failed to parse diceFaceNum: " + diceScript.diceFaceNum);
-            diceScript.ResetRollState();
             moveStarted = false;
-            resetDiceImage.raycastTarget = (TurnManager.Instance.currentTurnIndex == 0);
         }
         yield return null;
     }
@@ -187,11 +119,53 @@ public class GameController : MonoBehaviour
         }
         if (allFinished)
         {
+            foreach (PlayerMover p in TurnManager.Instance.players)
+            {
+                if (!p.isRecorded)
+                {
+                    p.isRecorded = true;
+
+                    string name = p.GetComponent<NameScript>().GetPlayerName();
+                    int points = CalculateScore(p);
+                    string avatarName = "avatar_" + PlayerPrefs.GetInt("SelectedCharacter");
+
+                    PlayerResult result = new PlayerResult(name, points, p.finishTime, avatarName);
+                    FindObjectOfType<SaveLoadScript>().AddPlayerResult(result);
+                }
+            }
+
             Debug.Log("[GameController] All players finished! Ending game.");
             gameEnded = true;
             StartCoroutine(EndGameRoutine());
         }
     }
+
+    private int CalculateScore(PlayerMover p)
+    {
+        float minutes = 0f;
+
+        try
+        {
+            string[] parts = p.finishTime.Split(':');
+            if (parts.Length == 2)
+            {
+                int min = int.Parse(parts[0]);
+                int sec = int.Parse(parts[1]);
+                minutes = min + sec / 60f;
+            }
+        }
+        catch
+        {
+            minutes = 0f; // fallback
+        }
+
+        int score = Mathf.RoundToInt(
+            100f - minutes - p.diceRollCount - p.hurtCount + p.chestCount * 10
+        );
+
+        return score;
+    }
+
 
     IEnumerator EndGameRoutine()
     {
